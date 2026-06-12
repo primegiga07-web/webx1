@@ -1,0 +1,54 @@
+{
+  "updatedAt": "2026-01-02",
+  "games": [
+    {
+      "id": "flappy-boss",
+      "title": "Flappy Boss",
+      "thumbnailUrl": "https://flappybird.io/images/og.jpg",
+      "gameUrl": "https://earnest-zabaione-4d0288.netlify.app/",
+      "category": "JALAGARA",
+      "plays": 5000,
+      "isNew": false,
+      "isLatest": false,
+      "addedAt": "2025-12-01T10:00:00Z"
+    }, 
+    {
+      "id": "snake_gara",
+      "title": "Aquaman",
+      "thumbnailUrl": "https://flappybird.io/images/og.jpg",
+      "gameUrl": "https://luminous-speculoos-6d512f.netlify.app/",
+      "category": "JALAGARA",
+      "plays": 11,
+      "isNew": false,
+      "isLatest": true,
+      "addedAt": "2025-12-01T10:00:00Z"
+    }
+  ],
+  "template_games": {
+    "thumbnailUrl": "https://flappybird.io/images/og.jpg",
+    "games": [
+      {
+        "id": "flappy-boss",
+        "title": "Flappy Boss",
+        "thumbnailUrl": "https://flappybird.io/images/og.jpg",
+        "gameUrl": "https://earnest-zabaione-4d0288.netlify.app/",
+        "category": "JALAGARA",
+        "plays": 5000,
+        "isNew": false,
+        "isLatest": false,
+        "addedAt": "2025-12-01T10:00:00Z"
+      }, 
+      {
+        "id": "snake_gara",
+        "title": "Aquaman",
+        "thumbnailUrl": "https://flappybird.io/images/og.jpg",
+        "gameUrl": "https://luminous-speculoos-6d512f.netlify.app/",
+        "category": "JALAGARA",
+        "plays": 11,
+        "isNew": false,
+        "isLatest": true,
+        "addedAt": "2025-12-01T10:00:00Z"
+      }
+    ]
+  }
+}

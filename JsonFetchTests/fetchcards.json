@@ -1,0 +1,13 @@
+{
+  "updatedAt": "2026-01-02",
+  "fetch_cards": [
+    {
+      "id": "profile_referearnings",
+      "thumbnailUrl": "https://flappybird.io/images/og.jpg"
+    }, 
+    {
+      "id": "refer_earn",
+      "thumbnailUrl": "https://flappybird.io/images/og.jpg"
+    }  
+  ]
+}
