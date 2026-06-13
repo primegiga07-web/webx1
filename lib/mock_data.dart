@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'services/api_service.dart';
 
 class MockData {
   static Map<String, dynamic> gamesData = {};
@@ -166,9 +167,19 @@ class MockData {
   // Configured Correct OTP code for password reset verification
   static const String validOtp = '86300';
 
+  static bool useRealBackend = true;
+
   /// Simulates Login Endpoint
   /// Returns a JSON string response matching standard Django auth endpoints
   static Future<String> login(String email, String password) async {
+    if (useRealBackend) {
+      final res = await ApiService.login(email, password);
+      if (res['success'] == true) {
+        isLoggedIn = true;
+      }
+      return json.encode(res);
+    }
+
     await Future.delayed(const Duration(milliseconds: 800)); // Network simulation
 
     if (email.trim().isEmpty) {
@@ -214,6 +225,17 @@ class MockData {
 
   /// Simulates Registration Endpoint
   static Future<String> register(String email, String password, String confirmPassword, {String? referralCode}) async {
+    if (useRealBackend) {
+      if (password != confirmPassword) {
+        return json.encode({
+          'success': false,
+          'error': 'Passwords do not match',
+        });
+      }
+      final res = await ApiService.register(email, password, referralCode: referralCode);
+      return json.encode(res);
+    }
+
     await Future.delayed(const Duration(milliseconds: 800));
 
     if (email.trim().isEmpty || !email.contains('@')) {
@@ -264,6 +286,11 @@ class MockData {
 
   /// Simulates Request Password Reset (Forgot Password)
   static Future<String> requestPasswordReset(String email) async {
+    if (useRealBackend) {
+      final res = await ApiService.requestPasswordReset(email);
+      return json.encode(res);
+    }
+
     await Future.delayed(const Duration(milliseconds: 600));
 
     if (email.trim().isEmpty || !email.contains('@')) {
@@ -281,9 +308,18 @@ class MockData {
 
   /// Simulates OTP Code Verification
   static Future<String> verifyOtp(String code) async {
+    if (useRealBackend) {
+      final res = await ApiService.verifyOtp(code);
+      if (res['success'] == true) {
+        isLoggedIn = true;
+      }
+      return json.encode(res);
+    }
+
     await Future.delayed(const Duration(milliseconds: 500));
 
     if (code == validOtp) {
+      isLoggedIn = true;
       return json.encode({
         'success': true,
         'message': 'Code verified successfully',
@@ -298,6 +334,11 @@ class MockData {
 
   /// Simulates Set New Password
   static Future<String> updatePassword(String newPassword, String confirmPassword) async {
+    if (useRealBackend) {
+      final res = await ApiService.updatePassword(newPassword, confirmPassword);
+      return json.encode(res);
+    }
+
     await Future.delayed(const Duration(milliseconds: 800));
 
     if (newPassword.length < 6) {

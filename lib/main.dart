@@ -13,8 +13,18 @@ import 'screens/template_games_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
+  
+  // Start the app immediately
   runApp(const MainApp());
+
+  // Initialize ads in the background so it never blocks the UI launch
+  Future.delayed(const Duration(milliseconds: 500), () {
+    try {
+      MobileAds.instance.initialize();
+    } catch (e) {
+      debugPrint("AdMob initialization failed: $e");
+    }
+  });
 }
 
 class MainApp extends StatelessWidget {

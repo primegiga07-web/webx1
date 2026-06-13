@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../auth_theme.dart';
 import '../mock_data.dart';
+import '../services/api_service.dart';
 import '../components/circular_back_button.dart';
 import '../components/login_required_view.dart';
 
@@ -130,7 +131,7 @@ class ReferandEarnScreen extends StatelessWidget {
   }
 
   Widget _buildPromoCodeBox(BuildContext context, Map<String, dynamic> data) {
-    final code = data['promoCode'];
+    final code = ApiService.cachedUid ?? data['promoCode'];
 
     return Container(
       decoration: BoxDecoration(

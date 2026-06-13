@@ -12,6 +12,7 @@ dependencies:
   flutter_svg: ^2.0.7
   webview_flutter: ^4.4.2
   google_mobile_ads: ^4.0.0
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:

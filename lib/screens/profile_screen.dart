@@ -3,12 +3,116 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../auth_theme.dart';
 import '../mock_data.dart';
-import 'withdraw_successful_dialog.dart';
-
+import '../services/api_service.dart';
+import 'withdraw_request_dialog.dart';
 import '../components/login_required_view.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  int _rocketCoins = 0;
+  int _streakCount = 0;
+  String _uid = '';
+  String _username = '';
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (MockData.isLoggedIn) {
+      _loadProfileData();
+    }
+  }
+
+  Future<void> _loadProfileData() async {
+    // Start with cached/mock local data if available
+    setState(() {
+      _uid = ApiService.cachedUid ?? 'RW100001';
+      _username = ApiService.cachedUid ?? 'username';
+    });
+
+    if (!MockData.useRealBackend || ApiService.accessToken == null) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final res = await ApiService.fetchProfile();
+    if (res['success'] == true) {
+      if (mounted) {
+        setState(() {
+          _rocketCoins = res['rocket_coins'] ?? 0;
+          _streakCount = res['streak_count'] ?? 0;
+          _uid = res['uid'] ?? _uid;
+          _username = res['username'] ?? _username;
+          _isLoading = false;
+        });
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _claimStreak() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    if (MockData.useRealBackend) {
+      final res = await ApiService.claimStreak();
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (res['success'] == true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(res['message'] ?? 'Streak claimed successfully!'),
+              backgroundColor: const Color(0xFF4ADE80),
+            ),
+          );
+          _loadProfileData(); // Reload values
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(res['error'] ?? 'Failed to claim streak.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } else {
+      // Mock Claim
+      await Future.delayed(const Duration(milliseconds: 600));
+      setState(() {
+        _streakCount += 1;
+        _rocketCoins += 20;
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Mock Streak Claimed! +20 Coins.'),
+            backgroundColor: Color(0xFF4ADE80),
+          ),
+        );
+      }
+    }
+  }
 
   void _copyToClipboard(BuildContext context, String text, String message) {
     Clipboard.setData(ClipboardData(text: text));
@@ -97,6 +201,9 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.logout_rounded,
                   onTap: () {
                     MockData.isLoggedIn = false;
+                    ApiService.accessToken = null;
+                    ApiService.cachedShardUrl = null;
+                    ApiService.cachedUid = null;
                     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                   },
                 ),
@@ -124,6 +231,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildAccountCard(BuildContext context, Map<String, dynamic> data) {
+    final displayUid = _uid.isNotEmpty ? _uid : 'RW100001';
+    final displayUsername = _username.isNotEmpty ? _username : 'user';
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B), // Dark slate background matching mockup
@@ -144,7 +254,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    data['username'].toString().substring(0, 3).toUpperCase(),
+                    displayUsername.substring(0, displayUsername.length > 3 ? 3 : displayUsername.length).toUpperCase(),
                     style: const TextStyle(
                       fontFamily: AuthTheme.fontFamily,
                       fontWeight: FontWeight.w600,
@@ -161,7 +271,7 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      data['username'],
+                      displayUsername,
                       style: const TextStyle(
                         fontFamily: AuthTheme.fontFamily,
                         fontWeight: FontWeight.w600,
@@ -171,7 +281,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 2.0),
                     Text(
-                      data['handle'],
+                      "@$displayUid",
                       style: const TextStyle(
                         fontFamily: AuthTheme.fontFamily,
                         fontWeight: FontWeight.w500,
@@ -184,7 +294,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               // Copy Button
               GestureDetector(
-                onTap: () => _copyToClipboard(context, data['handle'], 'User handle copied!'),
+                onTap: () => _copyToClipboard(context, displayUid, 'User ID copied!'),
                 child: SvgPicture.asset(
                   'assets/vectors/copy.svg',
                   width: 20.0,
@@ -206,26 +316,50 @@ class ProfileScreen extends StatelessWidget {
 
           // Streak Row
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SvgPicture.asset(
-                'assets/vectors/Icon - Trend up.svg',
-                width: 20.0,
-                height: 20.0,
-                colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                placeholderBuilder: (context) => const Icon(
-                  Icons.trending_up_rounded,
-                  size: 20.0,
-                  color: Colors.white,
-                ),
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    'assets/vectors/Icon - Trend up.svg',
+                    width: 20.0,
+                    height: 20.0,
+                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                    placeholderBuilder: (context) => const Icon(
+                      Icons.trending_up_rounded,
+                      size: 20.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16.0),
+                  Text(
+                    "$_streakCount Days Streak",
+                    style: const TextStyle(
+                      fontFamily: AuthTheme.fontFamily,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16.0),
-              Text(
-                data['streakLabel'],
-                style: const TextStyle(
-                  fontFamily: AuthTheme.fontFamily,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16.0,
-                  color: Colors.white,
+              TextButton(
+                onPressed: _isLoading ? null : _claimStreak,
+                style: TextButton.styleFrom(
+                  backgroundColor: AuthTheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                child: const Text(
+                  "Claim Today",
+                  style: TextStyle(
+                    fontFamily: AuthTheme.fontFamily,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12.0,
+                  ),
                 ),
               ),
             ],
@@ -242,6 +376,8 @@ class ProfileScreen extends StatelessWidget {
       orElse: () => null,
     );
     final String? thumbnailUrl = profileCard != null ? profileCard['thumbnailUrl'] : null;
+
+    final double rupees = _rocketCoins * 0.01;
 
     return Container(
       decoration: BoxDecoration(
@@ -274,7 +410,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6.0),
                 Text(
-                  data['balance'],
+                  "$_rocketCoins",
                   style: const TextStyle(
                     fontFamily: AuthTheme.fontFamily,
                     fontWeight: FontWeight.w600,
@@ -284,7 +420,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4.0),
                 Text(
-                  data['balanceChange'],
+                  "≈ ₹ ${rupees.toStringAsFixed(2)}",
                   style: const TextStyle(
                     fontFamily: AuthTheme.fontFamily,
                     fontWeight: FontWeight.w500,
@@ -302,7 +438,10 @@ class ProfileScreen extends StatelessWidget {
               showDialog(
                 context: context,
                 barrierColor: Colors.black.withAlpha(160), // Dark modal backdrop
-                builder: (context) => const WithdrawSuccessfulDialog(),
+                builder: (context) => WithdrawRequestDialog(
+                  currentBalance: _rocketCoins,
+                  onWithdrawalSuccess: _loadProfileData,
+                ),
               );
             },
             borderRadius: BorderRadius.circular(24.0),

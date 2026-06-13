@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Backend
+.venv/
+env/
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.dart_tool/
