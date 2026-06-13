@@ -6,7 +6,7 @@ class ApiService {
   // Configuration: Gateway server URL
   // "http://10.0.2.2:8000/api" maps to localhost for Android emulator.
   // Use "http://127.0.0.1:8000/api" for iOS simulators or web.
-  static String gatewayUrl = "http://10.0.2.2:8000/api";
+  static String gatewayUrl = "https://webx-gateway.onrender.com/api";
 
   // Cached session variables
   static String? cachedShardUrl;
