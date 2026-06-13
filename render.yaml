@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: webx-gateway
+    env: python
+    rootDir: backend/gateway
+    buildCommand: pip install -r ../requirements.txt
+    startCommand: gunicorn gateway.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: DATABASE_URL
+        sync: false
+      - key: SHARD_SECRET_KEY
+        sync: false
+
+  - type: web
+    name: webx-shard-1
+    env: python
+    rootDir: backend/shard
+    buildCommand: pip install -r ../requirements.txt
+    startCommand: gunicorn shard.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: SHARD_PREFIX
+        value: RW100
+      - key: DATABASE_URL
+        sync: false
+      - key: SHARD_SECRET_KEY
+        sync: false
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        value: contact.monobuiltz@gmail.com
+      - key: EMAIL_HOST_PASSWORD
+        value: qmclzvesnjqduubu
+      - key: DEFAULT_FROM_EMAIL
+        value: WebX Support <contact.monobuiltz@gmail.com>
