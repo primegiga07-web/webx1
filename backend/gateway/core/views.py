@@ -16,7 +16,7 @@ def _check_email_on_shard(shard_url, email):
             'Content-Type': 'application/json'
         }
         payload = {'email': email}
-        resp = requests.post(verify_url, headers=headers, json=payload, timeout=4)
+        resp = requests.post(verify_url, headers=headers, json=payload, timeout=25)
         if resp.status_code == 200:
             data = resp.json()
             if data.get('exists') == True:
@@ -129,7 +129,7 @@ def gateway_signup(request):
         # Call the referrer's shard verify-uid API
         try:
             verify_url = f"{ref_shard_url.rstrip('/')}/api/shards/verify-uid/"
-            resp = requests.get(verify_url, params={'uid': referral_code}, timeout=5)
+            resp = requests.get(verify_url, params={'uid': referral_code}, timeout=25)
             if resp.status_code == 200:
                 resp_data = resp.json()
                 if resp_data.get('exists') == True:
@@ -158,7 +158,7 @@ def gateway_signup(request):
             'password': password,
             'referred_by_uid': referred_by_uid
         }
-        resp = requests.post(reserve_url, headers=headers, json=payload, timeout=8)
+        resp = requests.post(reserve_url, headers=headers, json=payload, timeout=25)
         
         if resp.status_code == 200 or resp.status_code == 201:
             resp_data = resp.json()
